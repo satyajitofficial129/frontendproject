@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';  // Correctly imported
 import { generateHash } from '@/utils/hash';
+import { NEXT_PUBLIC_API_BASE_URL } from '@/utils/settings';
 
 export default function LoginPage() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -14,7 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl = NEXT_PUBLIC_API_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
