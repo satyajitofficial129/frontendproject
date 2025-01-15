@@ -202,6 +202,7 @@ const Chat = () => {
     };
 
     const fetchData = async (userId) => {
+        setLoading(true);
         try {
             const endpoint = `/message-list/${userId}`;
             const url = `${apiBaseUrl}${endpoint}`;
@@ -224,6 +225,7 @@ const Chat = () => {
                     unique_facebook_id: unique_facebook_id,
                 });
                 setIsActive(true);
+                setLoading(false);
             }
         } catch (error) {
             console.error("Error fetching data:", error);
