@@ -415,7 +415,7 @@ const Chat = () => {
         if (isActive && userId !== null) {
             const interval = setInterval(() => {
                 fetchData(userId);
-            }, 5000);
+            }, 1000);
             return () => clearInterval(interval);
         }
     }, [isActive, userId]);
