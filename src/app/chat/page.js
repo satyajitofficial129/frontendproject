@@ -17,9 +17,11 @@ import ImageSlug from '@/components/ImageSlug';
 import getAuthUserId from '@/utils/getAuthUserId';
 import { META_API_URL, NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_API_TOKEN, PAGE_ACCESS_TOKEN, PAGE_ID } from '@/utils/settings';
 
+
 const Chat = () => {
     const router = useRouter();
 
+    
     const [sentiment, setSentiment] = useState(null);
     const [showOffcanvas, setShowOffcanvas] = useState(false);
     const [showModal, setShowModal] = useState(false);
