@@ -1,12 +1,12 @@
 "use client";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import ImageSlug from "../ImageSlug";
 
 const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => {} }) => {
     const pathname = usePathname();
+    const [activeItemId, setActiveItemId] = useState(null);
 
-    // Function to determine sidebar title based on the current path
     const getSidebarTitle = () => {
         switch (pathname) {
             case "/chat":
@@ -18,32 +18,34 @@ const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => 
         }
     };
 
-    // Function to render user item
+    const handleItemClick = (e, item) => {
+        e.preventDefault();
+        setActiveItemId(item.id || item.commentId || item.uniquefacebookId);
+        handleClick(e, item);
+    };
+
     const renderUserItem = (user) => (
-        <li key={user.id || user.uniquefacebookId}>
+        <li 
+            key={user.id || user.uniquefacebookId}
+            className={activeItemId === (user.id || user.uniquefacebookId) ? "active" : ""}
+        >
             <a
-                onClick={(e) => handleClick(e, user)}
+                onClick={(e) => handleItemClick(e, user)}
                 href="#"
                 data-conversation={user.uniquefacebookId}
             >
                 <ImageSlug name={user.name} />
                 <span className="content-message-info">
                     <span className="content-message-name">{user.name}</span>
-                    {user.lastMessageReadStatus === 0 ? (
-                        <span
-                            className="content-message-text"
-                            style={{ fontWeight: "700", color: "black" }}
-                        >
-                            {user.lastMessage}
-                        </span>
-                    ) : (
-                        <span
-                            className="content-message-text"
-                            style={{ fontWeight: "400" }}
-                        >
-                            {user.lastMessage}
-                        </span>
-                    )}
+                    <span
+                        className="content-message-text"
+                        style={{
+                            fontWeight: user.lastMessageReadStatus === 0 ? "700" : "400",
+                            color: user.lastMessageReadStatus === 0 ? "black" : "inherit"
+                        }}
+                    >
+                        {user.lastMessage}
+                    </span>
                 </span>
                 <span className="content-message-more">
                     <span className="content-message-unread">{user.messageLogsCount}</span>
@@ -53,29 +55,26 @@ const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => 
         </li>
     );
 
-    // Function to render comment item
     const renderCommentItem = (comment) => (
-        <li key={comment.commentId}>
+        <li 
+            key={comment.commentId}
+            className={activeItemId === comment.commentId ? "active" : ""}
+        >
             <a
-                onClick={(e) => handleClick(e, comment)}
+                onClick={(e) => handleItemClick(e, comment)}
                 href="#"
                 data-conversation={comment.commentId}
             >
                 <ImageSlug name={comment.fromName} />
                 <span className="content-message-info">
                     <span className="content-message-name">{comment.fromName}</span>
-                    
-                        <span
-                            className="content-message-text"
-                            style={{ fontWeight: "700", color: "black" }}
-                        >
-                            {comment.message}
-                        </span>
+                    <span
+                        className="content-message-text"
+                        style={{ fontWeight: "700", color: "black" }}
+                    >
+                        {comment.message}
+                    </span>
                 </span>
-                {/* <span className="content-message-more">
-                    <span className="content-message-unread">{comment.message}</span>
-                    <span className="content-message-time">{comment.createdTime}</span>
-                </span> */}
             </a>
         </li>
     );

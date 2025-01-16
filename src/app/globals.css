@@ -510,7 +510,7 @@ body {
     background-color: var(--slate-50);
 }
 .content-messages-list > .active > a {
-    background-color: var(--slate-100);
+    background-color: var(--emerald-100);
 }
 .content-message-title {
     margin-left: 16px;
@@ -954,6 +954,10 @@ body {
 }
 .conversation-default p {
     margin-top: 16px;
+}
+li.active {
+    background-color: var(--emerald-100); 
+    /* Additional styles for active state */
 }
 /* end: Conversation */
 
