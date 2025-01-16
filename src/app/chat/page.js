@@ -417,7 +417,7 @@ const Chat = () => {
         if (isActive && userId !== null) {
             const interval = setInterval(() => {
                 fetchData(userId);
-            }, 100);
+            }, 1500);
             return () => clearInterval(interval);
         }
     }, [isActive, userId]);
@@ -438,6 +438,7 @@ const Chat = () => {
                         <i className="ri-chat-3-line" />
                         <p>Select chat and view conversation!</p>
                     </div>
+                    {loading && <div className="loader">Loading...</div>}
                     <div
                         className={`conversation ${isActive ? "active" : ""}`}
                     >
