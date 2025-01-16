@@ -202,7 +202,6 @@ const Chat = () => {
     };
 
     const fetchData = async (userId) => {
-        setLoading(true);
         try {
             const endpoint = `/message-list/${userId}`;
             const url = `${apiBaseUrl}${endpoint}`;
@@ -225,7 +224,6 @@ const Chat = () => {
                     unique_facebook_id: unique_facebook_id,
                 });
                 setIsActive(true);
-                setLoading(false);
             }
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -417,7 +415,7 @@ const Chat = () => {
         if (isActive && userId !== null) {
             const interval = setInterval(() => {
                 fetchData(userId);
-            }, 1500);
+            }, 2000);
             return () => clearInterval(interval);
         }
     }, [isActive, userId]);
@@ -438,7 +436,6 @@ const Chat = () => {
                         <i className="ri-chat-3-line" />
                         <p>Select chat and view conversation!</p>
                     </div>
-                    {loading && <div className="loader">Loading...</div>}
                     <div
                         className={`conversation ${isActive ? "active" : ""}`}
                     >
