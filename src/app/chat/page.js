@@ -100,6 +100,7 @@ const Chat = () => {
             message: {
                 text: Message || "hello test",
             },
+            tag: "post_purchase_update",
         };
         const authUserId = await getAuthUserId();
         const localPayload = {
@@ -211,10 +212,13 @@ const Chat = () => {
                 },
             });
             if (response.data.success) {
+                console.log(response.data);
                 const conversationData = response.data.message_list;
                 const userName = response.data.user_name;
                 const senderId = response.data.sender_id;
                 const unique_facebook_id = response.data.unique_facebook_id;
+                const is_follow_up = response.data.is_follow_up;
+                console.log(is_follow_up);
                 setActiveConversation({
                     messages: conversationData,
                     name: userName,
@@ -222,6 +226,7 @@ const Chat = () => {
                     status: "online",
                     senderId: senderId,
                     unique_facebook_id: unique_facebook_id,
+                    is_follow_up: is_follow_up,
                 });
                 setIsActive(true);
             }
@@ -339,13 +344,28 @@ const Chat = () => {
             const url = `${apiBaseUrl}${endpoint}`;
             const response = await axios.get(url);
             if (response.status === 200) {
-                toast.success('Template Archive successfully!');
                 setIsActive(false);
+                toast.success('Template Archive successfully!');
+                
             }
         } catch (error) {
             console.error('Error:', error);
         }
     };
+    const handleFollowUp = async (uniqueFacebookId, e) => {
+        e.preventDefault();
+        try{
+            const endpoint = `/manage-follow-up/${uniqueFacebookId}`;
+            const url = `${apiBaseUrl}${endpoint}`;
+            const response = await axios.get(url);
+            if (response.status === 200) {
+                toast.success('Successfully add to Follow Up');
+            }
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
+    }
     const handleCancelEdit = () => {
         setIsEditing(false);
         setEditingTemplateId(null);
@@ -399,7 +419,7 @@ const Chat = () => {
         const interval = setInterval(fetchUserList, 5000);
         return () => clearInterval(interval);
     }, [token]);
-
+    
     const handleUserClick = (event, message) => {
         event.preventDefault();
         const uniquefacebookId = message.uniquefacebookId;
@@ -511,7 +531,7 @@ const Chat = () => {
                             <div>
                                 <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
                                     <div className="d-flex justify-content-between align-items-center">
-                                        <div>
+                                        <div style={{ display: "flex", justifyContent: 'space-between', gap: '24px' }}>
                                             <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                                                 <input
                                                     type="checkbox"
@@ -528,6 +548,35 @@ const Chat = () => {
                                                 />
                                                 <span style={{ marginLeft: "8px", fontSize: "14px", color: "#333" }}>Archive without message</span>
                                             </label>
+                                            
+                                            <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                                                {activeConversation.is_follow_up === 0 && (
+                                                    <input
+                                                        type="checkbox"
+                                                        onClick={(e) => handleFollowUp(activeConversation.unique_facebook_id, e)}
+                                                        value={activeConversation.is_follow_up}
+                                                        style={{
+                                                            width: "20px",
+                                                            height: "20px",
+                                                            cursor: "pointer",
+                                                            accentColor: "#4CAF50",
+                                                            border: "2px solid #ccc",
+                                                            borderRadius: "4px"
+                                                        }}
+                                                    />
+                                                )}
+                                                <span
+                                                    style={{
+                                                        marginLeft: activeConversation.is_follow_up === 0 ? "8px" : "0",
+                                                        fontSize: "14px",
+                                                        color: activeConversation.is_follow_up === 0 ? "#333" : "red"
+                                                    }}
+                                                >
+                                                    {activeConversation.is_follow_up === 0 ? "Add to Follow Up" : "Already added to Follow Up"}
+                                                </span>
+                                            </label>
+
+
                                         </div>
 
                                         <div>

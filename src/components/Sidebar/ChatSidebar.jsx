@@ -95,7 +95,12 @@ const ChatSidebar = () => {
             </span>
           </Link>
         </li>
-
+        <li className={pathname === '/follow-up' ? 'active' : ''}>
+          <Link href="/follow-up" data-title="FollowUp">
+          <i className="ri-chat-follow-up-line"></i>
+            
+          </Link>
+        </li>
         <SidebarProfile />
       </ul>
     </aside>
