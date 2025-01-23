@@ -45,8 +45,8 @@ const ChatSidebar = () => {
   };
 
   useEffect(() => {
-    const interval = setInterval(fetchActiveCount, 5000);
-    const commentInterval = setInterval(fetchActiveCommentCount, 5000);
+    const interval = setInterval(fetchActiveCount, 2000);
+    const commentInterval = setInterval(fetchActiveCommentCount, 2000);
     return () => clearInterval(interval);
   }, []);
 

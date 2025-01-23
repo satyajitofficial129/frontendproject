@@ -17,40 +17,75 @@ const Page = () => {
   const router = useRouter();
 
   const handleRedirect = (customerId) => {
-    
-    window.location.href = `/chat`;
-  };
-  useEffect(() => {
-    const fetchConversations = async () => {
+    const updateChat = async () => {
       try {
-        const authUserId = await getAuthUserId();
-        const endpoint = `/follow-up-list/${authUserId}?page=${currentPage}`;
+        const endpoint = `/go-to-chat/${customerId}`;
         const url = `${apiBaseUrl}${endpoint}`;
-
-        // Fetch paginated data from the API
         const response = await axios.get(url);
-        console.log(response.data); // Log the response to inspect the structure
 
-        if (response.status === 200) {
-          // Map the data to the desired structure
-          const data = response.data.data.map((conversation) => ({
-            customerId : conversation.id,
-            customerName: conversation.name,
-            messageLogs: conversation.message_logs || [],
-          }));
-          setConversations(data);
-          setCurrentPage(response.data.current_page);
-          setTotalPages(response.data.total_pages);
-          setTotalItems(response.data.total_items);
-        }
+        // Show success message
+        // console.log(response.data.message);
+        toast.success(response.data.message);
+
+        // Redirect only if successful
+        window.location.href = '/chat';
       } catch (error) {
-        toast.error("Error fetching conversations");
-        console.error("Error fetching conversations:", error);
+        console.error('Error during API call:', error);
+        toast.error('An error occurred while processing your request.');
       }
     };
 
+    updateChat();
+  };
+
+  const fetchConversations = async () => {
+    try {
+      const authUserId = await getAuthUserId();
+      const endpoint = `/follow-up-list/${authUserId}?page=${currentPage}`;
+      const url = `${apiBaseUrl}${endpoint}`;
+
+      const response = await axios.get(url);
+      console.log(response.data);
+
+      if (response.status === 200) {
+        const data = response.data.data.map((conversation) => ({
+          customerId: conversation.id,
+          customerName: conversation.name,
+          messageLogs: conversation.message_logs || [],
+        }));
+        setConversations(data);
+        setCurrentPage(response.data.current_page);
+        setTotalPages(response.data.total_pages);
+        setTotalItems(response.data.total_items);
+      }
+    } catch (error) {
+      toast.error("Error fetching conversations");
+      console.error("Error fetching conversations:", error);
+    }
+  };
+
+  const handleFollowUp = (customerId) => {
+    const removeFollowUp = async () => {
+      try {
+        const endpoint = `/remove-follow-up/${customerId}`;
+        const url = `${apiBaseUrl}${endpoint}`;
+        const response = await axios.get(url);
+
+        toast.success(response.data.message);
+
+        // Fetch the updated list of conversations after removing follow-up
+        fetchConversations();
+      } catch (error) {
+        console.error('Error during API call:', error);
+        toast.error('An error occurred while processing your request.');
+      }
+    };
+    removeFollowUp();
+  };
+
+  useEffect(() => {
     fetchConversations();
-  }, [apiBaseUrl, currentPage]); // Re-fetch conversations when currentPage changes
+  }, [apiBaseUrl, currentPage]); // Re-run the fetch when apiBaseUrl or currentPage changes
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -68,8 +103,9 @@ const Page = () => {
               <thead className="thead-dark">
                 <tr>
                   <th scope="col" style={{ width: '20%' }}>Customer Name</th>
-                  <th scope="col" style={{ width: '70%' }}>Conversation</th>
-                  <th scope="col" style={{ width: '10%' }}>Action</th>
+                  <th scope="col" style={{ width: '50%' }}>Conversation</th>
+                  <th scope="col" style={{ width: '20%', textAlign: 'center' }}>Remove From Followup</th>
+                  <th scope="col" style={{ width: '10%', textAlign: 'center' }}>Go To Chat</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,15 +125,28 @@ const Page = () => {
                           </li>
                         ))}
                       </ul>
-                      
                     </td>
-                    <td>
-                    <div 
-                      className="btn btn-sm btn-primary" 
-                      onClick={() => handleRedirect(conversation.customerId)} // Pass the customerId on click
-                    >
-                      <i className="ri-corner-up-left-double-line"></i>
-                    </div>
+                    <td style={{ textAlign: 'center' }}>
+                      <div
+                        className="btn btn-sm btn-primary"
+                        onClick={() => {
+                          const isConfirmed = window.confirm("Are you sure ? you want to Remove From Follow Up!!");
+                          if (isConfirmed) {
+                            handleFollowUp(conversation.customerId);
+                          }
+                        }}
+                      >
+                        <i className="ri-eraser-line"></i>
+                      </div>
+                    </td>
+
+                    <td style={{ textAlign: 'center' }}>
+                      <div
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleRedirect(conversation.customerId)}
+                      >
+                        <i className="ri-corner-up-left-double-line"></i>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -106,7 +155,7 @@ const Page = () => {
           </div>
 
           {/* Pagination Controls */}
-          <div className="pagination-controls mt-3">
+          <div className="pagination-controls mt-3" style={{ position: 'absolute', right: '10px', bottom: '20px' }}>
             <nav aria-label="Page navigation">
               <ul className="pagination justify-content-center">
                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -118,14 +167,13 @@ const Page = () => {
                     Previous
                   </button>
                 </li>
-                
+
                 {/* Page Number */}
                 <li className="page-item disabled">
                   <span className="page-link">
                     Page {currentPage} of {totalPages}
                   </span>
                 </li>
-
                 <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
                   <button
                     className="page-link"

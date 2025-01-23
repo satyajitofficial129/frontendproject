@@ -345,7 +345,7 @@ const Chat = () => {
             const response = await axios.get(url);
             if (response.status === 200) {
                 setIsActive(false);
-                toast.success('Template Archive successfully!');
+                toast.success('Archive successfully!');
                 
             }
         } catch (error) {
@@ -359,6 +359,7 @@ const Chat = () => {
             const url = `${apiBaseUrl}${endpoint}`;
             const response = await axios.get(url);
             if (response.status === 200) {
+                setIsActive(false);
                 toast.success('Successfully add to Follow Up');
             }
         }
@@ -435,7 +436,7 @@ const Chat = () => {
         if (isActive && userId !== null) {
             const interval = setInterval(() => {
                 fetchData(userId);
-            }, 1000);
+            }, 1500);
             return () => clearInterval(interval);
         }
     }, [isActive, userId]);
