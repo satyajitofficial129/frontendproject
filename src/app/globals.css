@@ -396,7 +396,7 @@ body {
 .chat-sidebar-profile-dropdown {
     position: absolute;
     bottom: 0;
-    right: -150%;
+    right: -223%;
     background-color: var(--white);
     box-shadow: 0 2px 8px #0000001a;
     list-style-type: none;
