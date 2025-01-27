@@ -212,13 +212,13 @@ const Chat = () => {
                 },
             });
             if (response.data.success) {
-                console.log(response.data);
+                // console.log(response.data);
                 const conversationData = response.data.message_list;
                 const userName = response.data.user_name;
                 const senderId = response.data.sender_id;
                 const unique_facebook_id = response.data.unique_facebook_id;
                 const is_follow_up = response.data.is_follow_up;
-                console.log(is_follow_up);
+                // console.log(is_follow_up);
                 setActiveConversation({
                     messages: conversationData,
                     name: userName,
@@ -738,7 +738,7 @@ const Chat = () => {
                                             isMulti={false}
                                             options={sentimentOptions}
                                             onChange={(selected) => {
-                                                console.log('Selected sentiment:', selected);
+                                                // console.log('Selected sentiment:', selected);
                                                 setSentiment(selected);
                                             }}
                                         />
