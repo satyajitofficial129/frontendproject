@@ -417,7 +417,7 @@ const Chat = () => {
             }
         };
         fetchUserList();
-        const interval = setInterval(fetchUserList, 5000);
+        const interval = setInterval(fetchUserList, 60000);
         return () => clearInterval(interval);
     }, [token]);
     
@@ -431,12 +431,13 @@ const Chat = () => {
         }
         setUserId(userId);
         setIsActive(true);
+        fetchData(userId);
     };
     useEffect(() => {
         if (isActive && userId !== null) {
             const interval = setInterval(() => {
                 fetchData(userId);
-            }, 1500);
+            }, 4000);
             return () => clearInterval(interval);
         }
     }, [isActive, userId]);
@@ -754,6 +755,7 @@ const Chat = () => {
                                                 borderRadius: "4px",
                                             }}
                                             ref={checkboxRef}
+                                            defaultChecked={true} 
                                         />
                                         <button
                                             type="button"

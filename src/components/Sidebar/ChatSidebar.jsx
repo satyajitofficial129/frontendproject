@@ -10,22 +10,21 @@ import { toast } from 'react-toastify';
 import getAuthUserId from '@/utils/getAuthUserId';
 
 const ChatSidebar = () => {
-  const [count, setCount] = useState(0);
-  const [commentCount, setCommentCount] = useState(0);
+  const [count, setCount] = useState(0); // Message count
+  const [commentCount, setCommentCount] = useState(0); // Comment count
   const pathname = usePathname();
-  const apiBaseUrl = NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   const fetchActiveCount = async () => {
     try {
       const authUserId = await getAuthUserId();
       const endpoint = `/active-count/${authUserId}`;
       const url = `${apiBaseUrl}${endpoint}`;
       const response = await axios.get(url);
-      // console.log('message count');
-      // console.log(response);
-      setCount(response.data.unread_user_active_count);
+      setCount(response.data.unread_user_active_count || 0);
     } catch (error) {
-      console.log(error);
-      toast.error(`Error: ${error.message}`);
+      console.error(error);
+      toast.error(`Error fetching active count: ${error.message}`);
     }
   };
 
@@ -34,20 +33,24 @@ const ChatSidebar = () => {
       const authUserId = await getAuthUserId();
       const endpoint = `/active-comment-count/${authUserId}`;
       const url = `${apiBaseUrl}${endpoint}`;
-      const commentresponse = await axios.get(url);
-      // console.log('comment count');
-      // console.log(commentresponse);
-      setCommentCount(commentresponse.data.count);
+      const commentResponse = await axios.get(url);
+      setCommentCount(commentResponse.data.count || 0);
     } catch (error) {
-      console.log(error);
-      toast.error(`Error: ${error.message}`);
+      console.error(error);
+      toast.error(`Error fetching active comment count: ${error.message}`);
     }
   };
-
   useEffect(() => {
-    const interval = setInterval(fetchActiveCount, 2000);
-    const commentInterval = setInterval(fetchActiveCommentCount, 2000);
-    return () => clearInterval(interval);
+    fetchActiveCount();
+    fetchActiveCommentCount();
+    const interval = setInterval(fetchActiveCount, 60000);
+    const commentInterval = setInterval(fetchActiveCommentCount, 60000);
+
+    // Clean up intervals on component unmount
+    return () => {
+      clearInterval(interval);
+      clearInterval(commentInterval);
+    };
   }, []);
 
   return (
@@ -77,7 +80,7 @@ const ChatSidebar = () => {
         </li>
         <li className={pathname === '/comment' ? 'active' : ''}>
           <Link href="/comment" data-title="Comments">
-          <i className="ri-chat-smile-3-fill"></i>
+            <i className="ri-chat-smile-3-fill"></i>
             <span
               className="count"
               style={{
@@ -97,8 +100,8 @@ const ChatSidebar = () => {
         </li>
         <li className={pathname === '/follow-up' ? 'active' : ''}>
           <Link href="/follow-up" data-title="FollowUp">
-          <i className="ri-chat-follow-up-line"></i>
-            
+            <i className="ri-chat-follow-up-line"></i>
+
           </Link>
         </li>
         <SidebarProfile />
