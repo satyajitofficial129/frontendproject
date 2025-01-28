@@ -5,7 +5,7 @@ import MessageItem from "@/components/Message/MessagesList";
 import ChatSidebar from "@/components/Sidebar/ChatSidebar";
 import SelectField from '@/components/Select/Select';
 import { Image, Offcanvas } from 'react-bootstrap';
-import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaPaperclip, FaPlus, FaRegSmile, FaSearch, FaShareAlt, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
+import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaLevelDownAlt, FaPaperclip, FaPlus, FaRegSmile, FaSearch, FaShareAlt, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
 import ContentSidebar from '@/components/Sidebar/ContentSidebar';
 import styles from '@/styles/Comment.module.css';
 import $ from "jquery";
@@ -161,6 +161,18 @@ const Chat = () => {
     const handleShow = async () => {
         setShowOffcanvas(true);
         await fetchMessageTemplate();
+    };
+    const handleNewLine = () => {
+        const textarea = document.querySelector('.conversation-form-input');
+        const cursorPos = textarea.selectionStart; // Get the current cursor position
+        const newMessage = Message.slice(0, cursorPos) + "\\n" + Message.slice(cursorPos); // Insert literal \n as text
+        setMessage(newMessage);
+        
+        // Move the cursor after the new line
+        setTimeout(() => {
+            textarea.selectionStart = cursorPos + 2;
+            textarea.selectionEnd = cursorPos + 2;
+        }, 0);
     };
     const fetchMessageTemplate = async () => {
         try {
@@ -581,7 +593,15 @@ const Chat = () => {
 
                                         </div>
 
-                                        <div>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                        <FaLevelDownAlt 
+                                                className={styles.icon} 
+                                                onClick={handleNewLine} 
+                                                data-title="Add New Line" 
+                                                title="Add New Line"
+                                                />
+
+                                            {/* <FaPlus className={styles.icon} onClick={handleNewLine}/> */}
                                             <FaEye className={styles.icon} onClick={handleShow} />
                                         </div>
                                         <Offcanvas show={showOffcanvas} onHide={handleClose} placement="end">
@@ -610,9 +630,9 @@ const Chat = () => {
                                                                     <textarea
                                                                         value={details}
                                                                         onChange={(e) => setDetails(e.target.value)}
-                                                                        rows={2}
+                                                                        rows={3}
                                                                         cols={50}
-                                                                        placeholder="Enter your template details here..."
+                                                                        placeholder="Enter your template details here... If you Want to add new line use \n where you want to break the line."
                                                                         style={{
                                                                             width: '100%',
                                                                             padding: '10px',
@@ -677,7 +697,7 @@ const Chat = () => {
                                                                                     <td>{index + 1}</td>
                                                                                     <td
                                                                                         style={{ cursor: 'pointer' }}
-                                                                                        onClick={() => handleMessagesClick(messages.template_details)} // Use template_details
+                                                                                        onClick={() => handleMessagesClick(messages.template_details)}
                                                                                     >
                                                                                         <div className="d-flex align-items-center gap-2">
                                                                                             <FaAlignLeft style={{ fontSize: '18px' }} />
@@ -724,7 +744,7 @@ const Chat = () => {
                                         <textarea
                                             className="conversation-form-input"
                                             rows={1}
-                                            placeholder="Type here..."
+                                            placeholder="Type here.."
                                             value={Message}
                                             onChange={(e) => setMessage(e.target.value)}
                                         />
