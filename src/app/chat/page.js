@@ -5,7 +5,7 @@ import MessageItem from "@/components/Message/MessagesList";
 import ChatSidebar from "@/components/Sidebar/ChatSidebar";
 import SelectField from '@/components/Select/Select';
 import { Image, Offcanvas } from 'react-bootstrap';
-import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaLevelDownAlt, FaPaperclip, FaPlus, FaRegSmile, FaSearch, FaShareAlt, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
+import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaLevelDownAlt, FaPaperclip, FaPlus, FaRegClock, FaRegSmile, FaSearch, FaShareAlt, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
 import ContentSidebar from '@/components/Sidebar/ContentSidebar';
 import styles from '@/styles/Comment.module.css';
 import $ from "jquery";
@@ -39,6 +39,7 @@ const Chat = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [file, setFile] = useState(null);
+    const [timeElapsed, setTimeElapsed] = useState(0);
     const [activeConversation, setActiveConversation] = useState({
         conversationId: '',
         name: '',
@@ -102,6 +103,7 @@ const Chat = () => {
             },
             tag: "post_purchase_update",
         };
+        console.log('Payload:', payload);
         const authUserId = await getAuthUserId();
         const localPayload = {
             to: userID,
@@ -109,7 +111,9 @@ const Chat = () => {
             is_checked: isChecked,
             sentiment: sentiment?.value || null,
             assign_user_id : authUserId,
+            total_time: timeElapsed,
         };
+        console.log('localPayload:', localPayload);
         try {
             const response = await fetch(
                 `${META_API_URL}/${PAGE_ID}/messages?access_token=${PAGE_ACCESS_TOKEN}`,
@@ -164,8 +168,8 @@ const Chat = () => {
     };
     const handleNewLine = () => {
         const textarea = document.querySelector('.conversation-form-input');
-        const cursorPos = textarea.selectionStart; // Get the current cursor position
-        const newMessage = Message.slice(0, cursorPos) + "\\n" + Message.slice(cursorPos); // Insert literal \n as text
+        const cursorPos = textarea.selectionStart;
+        const newMessage = Message.slice(0, cursorPos) + "\n" + Message.slice(cursorPos);
         setMessage(newMessage);
         
         // Move the cursor after the new line
@@ -371,7 +375,6 @@ const Chat = () => {
             const url = `${apiBaseUrl}${endpoint}`;
             const response = await axios.get(url);
             if (response.status === 200) {
-                setIsActive(false);
                 toast.success('Successfully add to Follow Up');
             }
         }
@@ -419,7 +422,6 @@ const Chat = () => {
                 });
                 setActiveConversationCount(response.data.count);
                 setUserList(formattedUserList);
-                // console.log('User List:', formattedUserList);
                 setLoading(false);
             } catch (err) {
                 setLoading(true);
@@ -437,22 +439,52 @@ const Chat = () => {
         event.preventDefault();
         const uniquefacebookId = message.uniquefacebookId;
         const userId = message.id;
+    
         if (!uniquefacebookId) {
             console.error("uniquefacebookId is missing!");
             return;
         }
-        setUserId(userId);
-        setIsActive(true);
-        fetchData(userId);
-    };
-    useEffect(() => {
-        if (isActive && userId !== null) {
-            const interval = setInterval(() => {
-                fetchData(userId);
-            }, 4000);
-            return () => clearInterval(interval);
+        if (userId !== currentUserId) {
+            setUserId(userId);
+            setIsActive(true);
+            setTimeElapsed(0);
+        } else {
+            setIsActive(true);
         }
+        
+        fetchData(userId);
+        setCurrentUserId(userId);
+    };
+    
+    const [currentUserId, setCurrentUserId] = useState(null);
+    
+    useEffect(() => {
+        let timerTimeout;
+        let fetchTimeout;
+        const fetchDataInterval = 4000;
+        const timerInterval = 1000;
+    
+        if (isActive && userId !== null) {
+            const updateTime = () => {
+                setTimeElapsed(prevTime => prevTime + 1);
+                timerTimeout = setTimeout(updateTime, timerInterval);
+            };
+    
+            const fetchDataAtInterval = () => {
+                fetchData(userId);
+                fetchTimeout = setTimeout(fetchDataAtInterval, fetchDataInterval);
+            };
+            updateTime();
+            fetchDataAtInterval();
+        }
+    
+        // Cleanup function
+        return () => {
+            clearTimeout(timerTimeout);
+            clearTimeout(fetchTimeout);
+        };
     }, [isActive, userId]);
+    
 
     return (
         <section className="chat-section">
@@ -477,11 +509,14 @@ const Chat = () => {
                             <button type="button" className="conversation-back">
                                 <i className="ri-arrow-left-line" />
                             </button>
-                            <div className="conversation-user">
-                                <div >
+                            <div className="conversation-user" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <ImageSlug name={activeConversation.name} />
                                         <div className="conversation-user-name">{activeConversation.name}</div>
+                                    </div>
+                                    <div>
+                                        <FaRegClock /> <span style={{ fontWeight: 'bold', color: 'red' }}>Time tracking for this conversation has started... </span> <div style={{ display: 'none' }}> {timeElapsed}</div>
                                     </div>
                                 </div>
                             </div>
