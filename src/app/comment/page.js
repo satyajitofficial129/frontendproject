@@ -7,7 +7,7 @@ import axios from 'axios';
 import { META_API_URL, NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_API_TOKEN, PAGE_ACCESS_TOKEN, PAGE_ID } from '@/utils/settings';
 import ImageSlug from '@/components/ImageSlug';
 import SelectField from '@/components/Select/Select';
-import { FaAlignLeft, FaComment, FaEdit, FaEye } from 'react-icons/fa';
+import { FaAlignLeft, FaComment, FaEdit, FaEye, FaLevelDownAlt } from 'react-icons/fa';
 import styles from '@/styles/Comment.module.css';
 import { toast } from 'react-toastify';
 import getAuthUserId from '@/utils/getAuthUserId';
@@ -252,7 +252,7 @@ const Comment = () => {
     const handleCommentSubmit = async () => {
         const userId = commentInfo.uniqueFacebookId;
         const commentId = commentInfo.commentId;
-        const messageBody = Message;
+        let  messageBody = Message;
         const replyMessage = showMessageTextarea ? commentMessage : null;
 
         // Validate input
@@ -272,6 +272,8 @@ const Comment = () => {
             toast.error('User ID is required to send a reply.');
             return;
         }
+        // Append user mention to the message
+        messageBody = `@[${userId}] ${messageBody}`;
 
         try {
             const response = await axios.post(
@@ -324,8 +326,13 @@ const Comment = () => {
     // Utility to send a reply message
     const sendReplyMessage = async (userId, replyMessage) => {
         const payload = {
-            recipient: { id: userId },
-            message: { text: replyMessage },
+            recipient: {
+                id: userId 
+            },
+            message: { 
+                text: replyMessage 
+            },
+            tag: "post_purchase_update",
         };
 
         try {
@@ -352,6 +359,20 @@ const Comment = () => {
     const saveSentiment = async () => {
 
     }
+    const handleNewLine = () => {
+        if (!showMessageTextarea) return;
+        const textarea = document.querySelector('.conversation-form-group:nth-child(2) .conversation-form-input');
+        if (!textarea) return;
+    
+        const cursorPos = textarea.selectionStart;
+        const newMessage = commentMessage.slice(0, cursorPos) + "\n" + commentMessage.slice(cursorPos);
+        setCommentMessage(newMessage);
+        setTimeout(() => {
+            textarea.selectionStart = cursorPos + 1;
+            textarea.selectionEnd = cursorPos + 1;
+        }, 0);
+    };
+    
 
     // Utility to handle errors
     const handleError = (message, error) => {
@@ -467,7 +488,13 @@ const Comment = () => {
                         </div>
                         <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
                             <div className="d-flex justify-content-between align-items-center">
-                                <div>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <FaLevelDownAlt 
+                                        className={styles.icon} 
+                                        onClick={handleNewLine} 
+                                        data-title="Add New Line" 
+                                        title="Add New Line"
+                                    />
                                     <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => updateBackendComment(commentInfo.commentId, null)}>
                                         <input
                                             type="checkbox"

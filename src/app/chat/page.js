@@ -581,6 +581,12 @@ const Chat = () => {
                                 <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
                                     <div className="d-flex justify-content-between align-items-center">
                                         <div style={{ display: "flex", justifyContent: 'space-between', gap: '24px' }}>
+                                        <FaLevelDownAlt 
+                                            className={styles.icon} 
+                                            onClick={handleNewLine} 
+                                            data-title="Add New Line" 
+                                            title="Add New Line"
+                                        />
                                             <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                                                 <input
                                                     type="checkbox"
@@ -629,12 +635,6 @@ const Chat = () => {
                                         </div>
 
                                         <div style={{ display: 'flex', gap: '10px' }}>
-                                        <FaLevelDownAlt 
-                                                className={styles.icon} 
-                                                onClick={handleNewLine} 
-                                                data-title="Add New Line" 
-                                                title="Add New Line"
-                                                />
 
                                             {/* <FaPlus className={styles.icon} onClick={handleNewLine}/> */}
                                             <FaEye className={styles.icon} onClick={handleShow} />
@@ -783,9 +783,6 @@ const Chat = () => {
                                             value={Message}
                                             onChange={(e) => setMessage(e.target.value)}
                                         />
-                                        <button type="button" className="conversation-form-record">
-                                            <i className="ri-mic-line" />
-                                        </button>
                                     </div>
                                 </div>
                                 <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
