@@ -284,11 +284,11 @@ const Chat = () => {
         
         // Bind the event to update the conversation when a new message comes in
         channel.bind('facebook.notification', (data) => {
-            console.log('Received data:', data);
-            console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
+            // console.log('Received data:', data);
+            // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
             if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
-                console.log('Matching conversation found.');
+                // console.log('Matching conversation found.');
                 
                 // Add the new message to the conversation
                 setActiveConversation((prevConversation) => {
@@ -296,18 +296,18 @@ const Chat = () => {
                         ...prevConversation,
                         messages: [...prevConversation.messages, data.message_list],
                     };
-                    console.log('Updated conversation:', updatedConversation);
+                    // console.log('Updated conversation:', updatedConversation);
                     return updatedConversation;
                 });
                 
-                console.log('Messages after update:', activeConversation?.messages);
+                // console.log('Messages after update:', activeConversation?.messages);
                 
                 // Fetch the updated data from the API to get the latest messages
-                console.log('Fetching data for user ID:', userId);
+                // console.log('Fetching data for user ID:', userId);
                 fetchData(userId);
                 
                 // Optionally show a Toastr notification
-                console.log(`Showing Toastr notification: New message from ${data.user_name}`);
+                // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
                 toast.info(`New message from ${data.user_name}`, `New Message`);
             } else {
                 console.log('No matching conversation found.');
