@@ -308,7 +308,7 @@ const Chat = () => {
                 
                 // Optionally show a Toastr notification
                 // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
-                toast.info(`New message from ${data.user_name}`, `New Message`);
+                // toast.info(`New message from ${data.user_name}`, `New Message`);
             } else {
                 console.log('No matching conversation found.');
             }
