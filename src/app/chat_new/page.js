@@ -149,8 +149,6 @@ const Chat = () => {
                             newMessage,
                         ],
                     }));
-                    fetchUserList();
-                    setUserId("");
                 }
                 else {
                     toast.error(`Error sending message to backend: ${backendResponse.data.error.message}`);
@@ -223,7 +221,7 @@ const Chat = () => {
     // Function to fetch data
     const fetchData = async (userId) => {
         if (!userId) {
-            // console.error("Invalid userId:", userId);
+            console.error("Invalid userId:", userId);
             return;
         }
 
@@ -455,46 +453,45 @@ const Chat = () => {
         setShowModal(false);
         setModalContent('');
     };
-    const fetchUserList = async () => {
-        try {
-            const authUserId = await getAuthUserId();
-            const endpoint = `/user-list/${authUserId}`;
-            const url = `${apiBaseUrl}${endpoint}`;
-            const response = await axios.get(url, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const formattedUserList = response.data.message.map((user) => {
-                const messageLogs = Array.isArray(user.message_logs) ? user.message_logs : [];
-                const lastMessage = messageLogs.length > 0 ? messageLogs[messageLogs.length - 1] : null;
-
-                return {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    uniquefacebookId: user.unique_facebook_id,
-                    updatedAt: user.updated_at,
-                    messageLogsCount: messageLogs.length,
-                    lastMessage: lastMessage ? lastMessage.message_content : null,
-                    lastMessageTimestamp: lastMessage ? lastMessage.timestamp : null,
-                    lastMessageReadStatus: lastMessage ? lastMessage.is_read : null,
-                };
-            });
-            setActiveConversationCount(response.data.count);
-            setUserList(formattedUserList);
-            setLoading(false);
-        } catch (err) {
-            setLoading(true);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchUserList();
+        const fetchUserList = async () => {
+            try {
+                const authUserId = await getAuthUserId();
+                const endpoint = `/user-list/${authUserId}`;
+                const url = `${apiBaseUrl}${endpoint}`;
+                const response = await axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                // console.log('User List:', response.data);
+                const formattedUserList = response.data.message.map((user) => {
+                    const messageLogs = Array.isArray(user.message_logs) ? user.message_logs : [];
+                    const lastMessage = messageLogs.length > 0 ? messageLogs[messageLogs.length - 1] : null;
 
+                    return {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        uniquefacebookId: user.unique_facebook_id,
+                        updatedAt: user.updated_at,
+                        messageLogsCount: messageLogs.length,
+                        lastMessage: lastMessage ? lastMessage.message_content : null,
+                        lastMessageTimestamp: lastMessage ? lastMessage.timestamp : null,
+                        lastMessageReadStatus: lastMessage ? lastMessage.is_read : null,
+                    };
+                });
+                setActiveConversationCount(response.data.count);
+                setUserList(formattedUserList);
+                setLoading(false);
+            } catch (err) {
+                setLoading(true);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUserList();
         const interval = setInterval(fetchUserList, 60000);
         return () => clearInterval(interval);
     }, [token]);
@@ -917,3 +914,6 @@ const Chat = () => {
 }
 
 export default Chat
+
+
+
