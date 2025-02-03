@@ -37,7 +37,7 @@ const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => 
                 <ImageSlug name={user.name} />
                 <span className="content-message-info">
                     <span className="content-message-name">{user.name}</span>
-                    <span
+                    {/* <span
                         className="content-message-text"
                         style={{
                             fontWeight: user.lastMessageReadStatus === 0 ? "700" : "400",
@@ -45,10 +45,10 @@ const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => 
                         }}
                     >
                         {user.lastMessage}
-                    </span>
+                    </span> */}
                 </span>
                 <span className="content-message-more">
-                    <span className="content-message-unread">{user.messageLogsCount}</span>
+                    {/* <span className="content-message-unread">{user.messageLogsCount}</span> */}
                     <span className="content-message-time">{user.createdTime}</span>
                 </span>
             </a>
