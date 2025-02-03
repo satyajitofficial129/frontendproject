@@ -305,6 +305,7 @@ const Chat = () => {
                 // Fetch the updated data from the API to get the latest messages
                 // console.log('Fetching data for user ID:', userId);
                 fetchData(userId);
+                fetchUserList();
                 
                 // Optionally show a Toastr notification
                 // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
