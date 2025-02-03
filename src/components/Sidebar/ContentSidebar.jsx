@@ -68,12 +68,12 @@ const ContentSidebar = ({ listType = "user", listData = [], handleClick = () => 
                 <ImageSlug name={comment.fromName} />
                 <span className="content-message-info">
                     <span className="content-message-name">{comment.fromName}</span>
-                    <span
+                    {/* <span
                         className="content-message-text"
                         style={{ fontWeight: "700", color: "black" }}
                     >
                         {comment.message}
-                    </span>
+                    </span> */}
                 </span>
             </a>
         </li>
