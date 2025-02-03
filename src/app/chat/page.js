@@ -493,12 +493,12 @@ const Chat = () => {
         }
     };
 
-    // useEffect(() => {
-    //     fetchUserList();
+    useEffect(() => {
+        fetchUserList();
 
-    //     const interval = setInterval(fetchUserList, 60000);
-    //     return () => clearInterval(interval);
-    // }, [token]);
+        const interval = setInterval(fetchUserList, 60000);
+        return () => clearInterval(interval);
+    }, [token]);
     
     const handleUserClick = (event, message) => {
         event.preventDefault();
