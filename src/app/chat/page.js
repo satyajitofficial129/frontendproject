@@ -222,6 +222,7 @@ const Chat = () => {
 
     // Function to fetch data
     const fetchData = async (userId) => {
+        console.log(userId);
         if (!userId) {
             // console.error("Invalid userId:", userId);
             return;
@@ -254,6 +255,7 @@ const Chat = () => {
                     is_follow_up: is_follow_up,
                 });
                 setIsActive(true);
+                console.log('okkk');
             }
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -274,7 +276,7 @@ const Chat = () => {
         // }
 
         // Initialize Pusher
-        const pusher = new Pusher('6eab3a7f6ae405c21841', {  // Replace with your Pusher key
+        const pusher = new Pusher('6eab3a7f6ae405c21841', {
             cluster: 'ap2',
             forceTLS: true,
         });
@@ -288,6 +290,7 @@ const Chat = () => {
             // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
             if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
+                // console.log('if');
                 // console.log('Matching conversation found.');
                 
                 // Add the new message to the conversation
@@ -309,9 +312,30 @@ const Chat = () => {
                 
                 // Optionally show a Toastr notification
                 // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
-                // toast.info(`New message from ${data.user_name}`, `New Message`);
+                toast.success(`New  from ${data.user_name}`, `New Message`, {
+                    autoClose: 100000,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                });
+                
             } else {
-                console.log('No matching conversation found.');
+                // console.log('else');
+                fetchUserList();
+                // console.log('No matching conversation found.');
+                toast.success(`New  from ${data.user_name}`, `New Message`, {
+                    autoClose: 100000,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                });
+                
             }
         });        
 
@@ -425,6 +449,7 @@ const Chat = () => {
             const response = await axios.get(url);
             if (response.status === 200) {
                 setIsActive(false);
+                fetchUserList();
                 toast.success('Archive successfully!');
                 
             }
@@ -496,8 +521,8 @@ const Chat = () => {
     useEffect(() => {
         fetchUserList();
 
-        const interval = setInterval(fetchUserList, 60000);
-        return () => clearInterval(interval);
+        // const interval = setInterval(fetchUserList, 60000);
+        // return () => clearInterval(interval);
     }, [token]);
     
     const handleUserClick = (event, message) => {
