@@ -103,7 +103,7 @@ const Chat = () => {
             },
             tag: "post_purchase_update",
         };
-        console.log('Payload:', payload);
+        // console.log('Payload:', payload);
         const authUserId = await getAuthUserId();
         const localPayload = {
             to: userID,
@@ -113,7 +113,7 @@ const Chat = () => {
             assign_user_id : authUserId,
             total_time: timeElapsed,
         };
-        console.log('localPayload:', localPayload);
+        // console.log('localPayload:', localPayload);
         try {
             const response = await fetch(
                 `${META_API_URL}/${PAGE_ID}/messages?access_token=${PAGE_ACCESS_TOKEN}`,
@@ -222,7 +222,7 @@ const Chat = () => {
 
     // Function to fetch data
     const fetchData = async (userId) => {
-        console.log(userId);
+        // console.log(userId);
         if (!userId) {
             // console.error("Invalid userId:", userId);
             return;
@@ -255,7 +255,7 @@ const Chat = () => {
                     is_follow_up: is_follow_up,
                 });
                 setIsActive(true);
-                console.log('okkk');
+                // console.log('okkk');
             }
         } catch (error) {
             console.error("Error fetching data:", error);
