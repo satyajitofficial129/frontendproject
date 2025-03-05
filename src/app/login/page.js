@@ -36,7 +36,10 @@ export default function LoginPage() {
       const response = await axios.post(url, localPayload, {
         headers: {
           'Content-Type': 'application/json',
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS"
         },
+        withCredentials: true,
       });
       if (response.status === 200) {
         const token = response.data.token;
