@@ -22,7 +22,7 @@ const ChatSidebar = () => {
         axios.get(`${apiBaseUrl}/active-count/${authUserId}`),
         axios.get(`${apiBaseUrl}/active-comment-count/${authUserId}`),
       ]);
-      console.log(messageResponse.data.unread_user_active_count);
+      // console.log(messageResponse.data.unread_user_active_count);
       setCount(messageResponse.data.unread_user_active_count);
       setCommentCount(commentResponse.data.count);
     } catch (error) {
