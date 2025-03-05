@@ -17,33 +17,41 @@ const SidebarProfile = () => {
   };
 
   return (
-    <li className={`chat-sidebar-profile ${isDropdownOpen ? "active" : ""
-      }`}>
-      <button
-        type="button"
-        style={{ border: 'none' }}
-        onClick={toggleDropdown}
-      >
-        <ImageSlug
-          name="Edu Tune"
-        />
-      </button>
+    <>
 
-      <ul
-        className="chat-sidebar-profile-dropdown"
-      >
-        <li>
-          <Link href="/profile-info">
-          <i className="ri-user-line"></i> profile Update
-          </Link>
-        </li>
-        <li>
-          <a href="#" onClick={handleLogout}>
-            <i className="ri-logout-box-line" /> Logout
-          </a>
-        </li>
-      </ul>
-    </li>
+      <li className={`chat-sidebar-profile ${isDropdownOpen ? "active" : ""
+        }`}>
+        <button
+          type="button"
+          style={{ border: 'none' }}
+          onClick={toggleDropdown}
+        >
+          <ImageSlug
+            name="Edu Tune"
+          />
+        </button>
+
+        <ul
+          className="chat-sidebar-profile-dropdown"
+        >
+          <li>
+            <Link href="/profile-info">
+              <i className="ri-user-line"></i> profile Update
+            </Link>
+          </li>
+          <li>
+            <a href="#" onClick={handleLogout}>
+              <i className="ri-logout-box-line" /> Logout
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <Link onClick={() => window.location.reload()} href='#' data-title="Refresh" className="sidebar-link">
+          <i className="ri-refresh-line"></i>
+        </Link>
+      </li>
+    </>
   );
 };
 
