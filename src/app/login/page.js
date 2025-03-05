@@ -37,9 +37,8 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json',
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+          "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,PATCH"
         },
-        withCredentials: true,
       });
       if (response.status === 200) {
         const token = response.data.token;
