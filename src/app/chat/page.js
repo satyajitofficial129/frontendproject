@@ -286,7 +286,7 @@ const Chat = () => {
         
         // Bind the event to update the conversation when a new message comes in
         channel.bind('facebook.notification', (data) => {
-            // console.log('Received data:', data);
+            console.log('Received data:', data);
             // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
             if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
@@ -312,7 +312,7 @@ const Chat = () => {
                 
                 // Optionally show a Toastr notification
                 // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
-                toast.success(`New  from ${data.user_name}`, `New Message`, {
+                toast.success(`New Message from ${data.user_name}`, `New Message`, {
                     autoClose: 100000,
                     hideProgressBar: false,
                     closeOnClick: false,
@@ -326,7 +326,7 @@ const Chat = () => {
                 // console.log('else');
                 fetchUserList();
                 // console.log('No matching conversation found.');
-                toast.success(`New  from ${data.user_name}`, `New Message`, {
+                toast.success(`New Message from ${data.user_name}`, `New Message`, {
                     autoClose: 100000,
                     hideProgressBar: false,
                     closeOnClick: false,
