@@ -289,54 +289,58 @@ const Chat = () => {
             console.log('Received data:', data);
             // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
-            if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
-                // console.log('if');
-                // console.log('Matching conversation found.');
-                
-                // Add the new message to the conversation
-                setActiveConversation((prevConversation) => {
-                    const updatedConversation = {
-                        ...prevConversation,
-                        messages: [...prevConversation.messages, data.message_list],
-                    };
-                    // console.log('Updated conversation:', updatedConversation);
-                    return updatedConversation;
-                });
-                
-                // console.log('Messages after update:', activeConversation?.messages);
-                
-                // Fetch the updated data from the API to get the latest messages
-                // console.log('Fetching data for user ID:', userId);
-                fetchData(userId);
-                fetchUserList();
-                
-                // Optionally show a Toastr notification
-                // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
-                toast.success(`New Message from ${data.user_name}`, `New Message`, {
-                    autoClose: 100000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "light",
-                });
-                
-            } else {
-                // console.log('else');
-                fetchUserList();
-                // console.log('No matching conversation found.');
-                toast.success(`New Message from ${data.user_name}`, `New Message`, {
-                    autoClose: 100000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "light",
-                });
-                
+
+            if(data.unique_facebook_id !== 'undefined' && data.unique_facebook_id !== '111074608141788') {
+                if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
+                    // console.log('if');
+                    // console.log('Matching conversation found.');
+                    
+                    // Add the new message to the conversation
+                    setActiveConversation((prevConversation) => {
+                        const updatedConversation = {
+                            ...prevConversation,
+                            messages: [...prevConversation.messages, data.message_list],
+                        };
+                        // console.log('Updated conversation:', updatedConversation);
+                        return updatedConversation;
+                    });
+                    
+                    // console.log('Messages after update:', activeConversation?.messages);
+                    
+                    // Fetch the updated data from the API to get the latest messages
+                    // console.log('Fetching data for user ID:', userId);
+                    fetchData(userId);
+                    fetchUserList();
+                    
+                    // Optionally show a Toastr notification
+                    // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
+                    toast.success(`New Message from ${data.user_name}`, `New Message`, {
+                        autoClose: 100000,
+                        hideProgressBar: false,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                    });
+                    
+                } else {
+                    // console.log('else');
+                    fetchUserList();
+                    // console.log('No matching conversation found.');
+                    toast.success(`New Message from ${data.user_name}`, `New Message`, {
+                        autoClose: 100000,
+                        hideProgressBar: false,
+                        closeOnClick: false,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                    });
+                    
+                }
             }
+
         });        
 
         // Clean up when component unmounts
