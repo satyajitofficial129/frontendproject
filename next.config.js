@@ -3,7 +3,7 @@ module.exports = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://test.api.prantosaha.com/public/api/:path*',
+        destination: 'https://edutunedqm.com/api/:path*',
       },
     ];
   },
