@@ -52,7 +52,8 @@ const FileUploadModal = ({ userId , facebookId , fileUploadSuccess, setIsActive 
 
     const handleUploadFile = async (userID) => {
         if (!isValidMessage(facebookId, fileTypeName)) return;
-        const localPayload = createLocalPayload(facebookId, fileTypeName);
+        const authUserId = await getAuthUserId();
+        const localPayload = createLocalPayload(facebookId, fileTypeName, authUserId);
         try {
             const payload = await createMessagePayload(userID);
             const response = await sendMessageToFacebook(payload);
@@ -148,11 +149,14 @@ const FileUploadModal = ({ userId , facebookId , fileUploadSuccess, setIsActive 
             return { ok: false, data: error.response?.data || error.message };
         }
     };
+    
     // Helper function to create the local payload
-    const createLocalPayload = (facebookId, fileTypeName) => ({
+    const createLocalPayload = (facebookId, fileTypeName , authUserId) => ({
         to: facebookId,
         message_type: fileType,
         message_content: fileTypeName,
+        assign_user_id: authUserId,
+
     });
     // Helper function to send message to backend
     const sendMessageToBackend = async (localPayload) => {
