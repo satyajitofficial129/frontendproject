@@ -53,6 +53,7 @@ const FileUploadModal = ({ userId , facebookId , fileUploadSuccess, setIsActive 
     const handleUploadFile = async (userID) => {
         if (!isValidMessage(facebookId, fileTypeName)) return;
         const authUserId = await getAuthUserId();
+        console.log(authUserId)
         const localPayload = createLocalPayload(facebookId, fileTypeName, authUserId);
         try {
             const payload = await createMessagePayload(userID);
