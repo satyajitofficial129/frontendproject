@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify"; // Assuming you're using react-toastify for notifications
+import { toast } from "react-toastify";
 import ChatSidebar from "@/components/Sidebar/ChatSidebar";
 import { NEXT_PUBLIC_API_BASE_URL } from "@/utils/settings";
 import getAuthUserId from "@/utils/getAuthUserId";
 import Link from "next/link";
 import { useRouter } from "next/compat/router";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 const Page = () => {
   const [conversations, setConversations] = useState([]);
@@ -99,7 +100,7 @@ const Page = () => {
         <ChatSidebar />
         <div className="chat-content">
           <div className="table-responsive mt-4" style={{ padding: "20px" }}>
-            <table className="table table-bordered ">
+            <table className="table table-bordered " style={{ height: '95%', overflow: 'scroll' }}>
               <thead className="thead-dark">
                 <tr>
                   <th scope="col" style={{ width: '20%' }}>Customer Name</th>
@@ -113,7 +114,7 @@ const Page = () => {
                   <tr key={index}>
                     <td>{conversation.customerName}</td>
                     <td>
-                      <ul>
+                      <ul style={{ padding: '0', margin: '0' }}>
                         {conversation.messageLogs.map((log, idx) => (
                           <li key={idx} style={{ listStyle: 'none' }}>
                             {log.unique_facebook_id === null ? (
@@ -126,9 +127,9 @@ const Page = () => {
                         ))}
                       </ul>
                     </td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       <div
-                        className="btn btn-sm btn-primary"
+                        className="btn btn-sm btn-danger"
                         onClick={() => {
                           const isConfirmed = window.confirm("Are you sure ? you want to Remove From Follow Up!!");
                           if (isConfirmed) {
@@ -136,13 +137,13 @@ const Page = () => {
                           }
                         }}
                       >
-                        <i className="ri-eraser-line"></i>
+                        <FaRegTrashAlt />
                       </div>
                     </td>
 
-                    <td style={{ textAlign: 'center' }}>
+                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       <div
-                        className="btn btn-sm btn-primary"
+                        className="btn btn-sm btn-success"
                         onClick={() => handleRedirect(conversation.customerId)}
                       >
                         <i className="ri-corner-up-left-double-line"></i>

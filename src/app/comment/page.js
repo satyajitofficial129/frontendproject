@@ -333,6 +333,8 @@ const Comment = () => {
                 text: replyMessage 
             },
             tag: "post_purchase_update",
+            // tag: "account_update",
+
         };
 
         try {
@@ -353,12 +355,10 @@ const Comment = () => {
                 toast.error('Failed to send the reply message.');
             }
         } catch (error) {
+            console.log(error);
             handleError('Error sending reply message', error);
         }
     };
-    const saveSentiment = async () => {
-
-    }
     const handleNewLine = () => {
         if (!showMessageTextarea) return;
         const textarea = document.querySelector('.conversation-form-group:nth-child(2) .conversation-form-input');

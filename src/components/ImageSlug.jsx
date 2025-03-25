@@ -15,7 +15,7 @@ const ImageSlug = ({ name }) => {
             <span >{initials}</span>
             <style jsx>{`
                 .image-slug {
-                background-color: #662d91; /* Background color for placeholder */
+                background-color: #2d5291; /* Background color for placeholder */
                 color: #fff; /* White text color */
                 border-radius: 50%; /* Circular design */
                 display: flex;

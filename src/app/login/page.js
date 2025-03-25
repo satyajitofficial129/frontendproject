@@ -49,7 +49,7 @@ export default function LoginPage() {
       }
     } catch (error) {
 
-      console.log(error.response.data.message);
+      console.log(error);
       if (error.response && error.response.data && error.response.data.messages) {
         const validationError = error.response.data.messages['email_or_phone'] ? error.response.data.messages['email_or_phone'][0] : 'An error occurred';
         setError(validationError);
@@ -71,7 +71,7 @@ export default function LoginPage() {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginForm}>
-        <h1 className={styles.loginTitle}>Login</h1>
+        <h1 className={styles.loginTitle}>Login Page</h1>
         {error && <p className={styles.errorMessage}>{error}</p>} {/* Error message display */}
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>

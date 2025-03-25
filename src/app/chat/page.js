@@ -5,7 +5,7 @@ import MessageItem from "@/components/Message/MessagesList";
 import ChatSidebar from "@/components/Sidebar/ChatSidebar";
 import SelectField from '@/components/Select/Select';
 import { Image, Offcanvas } from 'react-bootstrap';
-import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaLevelDownAlt, FaPaperclip, FaPlus, FaRegClock, FaRegSmile, FaSearch, FaShareAlt, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
+import { FaAlignLeft, FaBookmark, FaCheck, FaClipboard, FaComment, FaCopy, FaEdit, FaEnvelope, FaEye, FaGripVertical, FaLevelDownAlt, FaPaperclip, FaPlus, FaRegClock, FaRegSmile, FaSearch, FaShareAlt, FaTimes, FaTrashAlt, FaUserPlus } from 'react-icons/fa';
 import ContentSidebar from '@/components/Sidebar/ContentSidebar';
 import styles from '@/styles/Comment.module.css';
 import $ from "jquery";
@@ -15,8 +15,10 @@ import { useRouter } from 'next/navigation';
 import { generateHash } from '@/utils/hash';
 import ImageSlug from '@/components/ImageSlug';
 import getAuthUserId from '@/utils/getAuthUserId';
+
 import { META_API_URL, NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_API_TOKEN, PAGE_ACCESS_TOKEN, PAGE_ID } from '@/utils/settings';
 import Pusher from 'pusher-js';
+import FileUploadModal from '@/components/FileUpload/FileUploadModal';
 
 
 const Chat = () => {
@@ -24,8 +26,6 @@ const Chat = () => {
 
     const [sentiment, setSentiment] = useState(null);
     const [showOffcanvas, setShowOffcanvas] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [modalContent, setModalContent] = useState('');
     const [messageTemplate, setMessageTemplate] = useState([]);
     const [isActive, setIsActive] = useState(false);
     const [userId, setUserId] = useState(null);
@@ -34,12 +34,16 @@ const Chat = () => {
     const [details, setDetails] = useState('');
     const [templates, setTemplates] = useState([]);
     const [editingTemplateId, setEditingTemplateId] = useState(null);
+    const [isMessageDisabled, setIsMessageDisabled] = useState(false);
+
     // get user list funcationalities
     const [userList, setUserList] = useState([]);
     const [activeConversationCount, setActiveConversationCount] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const fileInputRef = useRef(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
     const [activeConversation, setActiveConversation] = useState({
         conversationId: '',
@@ -51,7 +55,7 @@ const Chat = () => {
 
     });
     const apiBaseUrl = NEXT_PUBLIC_API_BASE_URL;
-    const token =NEXT_PUBLIC_API_TOKEN;
+    const token = NEXT_PUBLIC_API_TOKEN;
     const checkboxRef = useRef(null);
 
     useEffect(() => {
@@ -82,87 +86,178 @@ const Chat = () => {
     const handleMessageSubmit = async () => {
         const userID = activeConversation.unique_facebook_id;
         const isChecked = checkboxRef.current.checked;
+
+        if (!isValidMessage(userID, Message, sentiment)) return;
+
+        const authUserId = await getAuthUserId();
+        const localPayload = createLocalPayload(userID, authUserId, isChecked);
+
+        try {
+            const payload = await createMessagePayload(userID);
+            const response = await sendMessageToFacebook(payload);
+
+            if (response.ok) {
+                const backendResponse = await sendMessageToBackend(localPayload);
+                if (backendResponse.status === 200) {
+                    handleSuccess();
+                } else {
+                    handleError(backendResponse.data.error.message, 'backend');
+                }
+            } else {
+                handleError(response.data.error.message, 'Facebook');
+            }
+        } catch (error) {
+            handleError(error.message, 'general');
+        }
+    };
+
+    // Helper function to validate message and sentiment
+    const isValidMessage = (userID, message, sentiment) => {
         if (!userID) {
             console.error("userID is undefined");
-            return;
+            return false;
         }
-        if (!Message || Message.trim() === "") {
-            toast.error('You can not sent an empty message!');
-            return;
+        if (!file) {
+            if (!message || message.trim() === "") {
+                toast.error('You cannot send an empty message!');
+                return false;
+            }
         }
         if (!sentiment) {
             toast.error('Sentiment cannot be null!');
-            return;
+            return false;
         }
-        const payload = {
-            recipient: {
-                id: userID,
-            },
-            message: {
-                text: Message || "hello test",
-            },
-            tag: "post_purchase_update",
+        return true;
+    };
+
+    // Helper function to create the local payload
+    const createLocalPayload = (userID, authUserId, isChecked) => ({
+        to: userID,
+        message_content: Message,
+        is_checked: isChecked,
+        sentiment: sentiment?.value || null,
+        assign_user_id: authUserId,
+        total_time: timeElapsed,
+    });
+
+    // Helper function to create the message payload
+    const createMessagePayload = async (userID) => {
+        let payload;
+        if (file) {
+            const fileUploadData = await uploadFile();
+            payload = {
+                recipient: { id: userID },
+                message: {
+                    attachment: {
+                        type: "file",
+                        payload: { attachment_id: fileUploadData.attachment_id },
+                    },
+                },
+            };
+        } else {
+            payload = {
+                recipient: { id: userID },
+                message: { text: Message || "hello test" },
+                tag: "post_purchase_update",
+            };
+        }
+        return payload;
+    };
+
+    // Helper function to handle file upload
+    const uploadFile = async () => {
+        const message_content = {
+            attachment: { type: "file", payload: {} },
         };
-        // console.log('Payload:', payload);
-        const authUserId = await getAuthUserId();
-        const localPayload = {
-            to: userID,
-            message_content: Message,
-            is_checked: isChecked,
-            sentiment: sentiment?.value || null,
-            assign_user_id : authUserId,
-            total_time: timeElapsed,
-        };
-        // console.log('localPayload:', localPayload);
-        try {
-            const response = await fetch(
-                `${META_API_URL}/${PAGE_ID}/messages?access_token=${PAGE_ACCESS_TOKEN}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                }
-            );
-            const data = await response.json();
-            if (response.ok) {
-                const endpoint = '/send-reply';
-                const url = `${apiBaseUrl}${endpoint}`;
-                const backendResponse = await axios.post(url, localPayload);
-                if (backendResponse.status === 200) {
-                    toast.success('Message sent Successfully!');
-                    setMessage('');
-                    if (isChecked) {
-                        setIsActive(false);
-                        checkboxRef.current.checked = false;
-                    }
-                    const newMessage = {
-                        message_content: Message,
-                        sender: 'You',
-                        created_time: new Date().toISOString(),
-                        isMe: true,
-                        isCurrentMessage: true,
-                    };
-                    setActiveConversation(prevState => ({
-                        ...prevState,
-                        messages: [
-                            ...prevState.messages,
-                            newMessage,
-                        ],
-                    }));
-                    fetchUserList();
-                    setUserId("");
-                }
-                else {
-                    toast.error(`Error sending message to backend: ${backendResponse.data.error.message}`);
-                }
-            } else {
-                toast.error(`Error sending message to Facebook: ${data.error.message}`);
+
+        const fileFormData = new FormData();
+        fileFormData.append("file", file);
+        fileFormData.append("message", JSON.stringify(message_content));
+
+        const fileUploadResponse = await fetch(
+            `${META_API_URL}/${PAGE_ID}/message_attachments?access_token=${PAGE_ACCESS_TOKEN}`,
+            { method: 'POST', body: fileFormData }
+        );
+
+        return await fileUploadResponse.json();
+    };
+
+    // Helper function to send message to Facebook
+    const sendMessageToFacebook = async (payload) => {
+        return await fetch(
+            `${META_API_URL}/${PAGE_ID}/messages?access_token=${PAGE_ACCESS_TOKEN}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             }
-        } catch (error) {
-            toast.error('Error sending message: ' + error.message);
-            console.error('Error sending message:', error);
+        );
+    };
+
+    // Helper function to send message to backend
+    const sendMessageToBackend = async (localPayload) => {
+        const endpoint = '/send-reply';
+        const url = `${apiBaseUrl}${endpoint}`;
+        return await axios.post(url, localPayload);
+    };
+
+    // Helper function to handle success after sending message
+    const handleSuccess = () => {
+        toast.success('Message sent successfully!');
+        setMessage('');
+        resetFormState();
+        updateMessages();
+    };
+
+    // Helper function to reset form state after successful submission
+    const resetFormState = () => {
+        if (checkboxRef.current.checked) {
+            setIsActive(false);
+            checkboxRef.current.checked = false;
         }
     };
+
+    // Helper function to update the conversation messages
+    const updateMessages = () => {
+        const newMessage = {
+            message_content: Message,
+            sender: 'You',
+            created_time: new Date().toISOString(),
+            isMe: true,
+            isCurrentMessage: true,
+        };
+        setActiveConversation(prevState => ({
+            ...prevState,
+            messages: [...prevState.messages, newMessage],
+        }));
+        fetchUserList();
+        setUserId("");
+    };
+
+    const updateMessagesWithFile = (fileType) => {
+        const newMessage = {
+            message_content: fileType,
+            sender: 'You',
+            created_time: new Date().toISOString(),
+            isMe: true,
+            isCurrentMessage: true,
+        };
+
+        setActiveConversation(prevState => ({
+            ...prevState,
+            messages: [...prevState.messages, newMessage],
+        }));
+        
+        fetchUserList();
+        resetFormState();
+    };
+
+    // Helper function to handle errors
+    const handleError = (errorMessage, source) => {
+        toast.error(`Error sending message to ${source}: ${errorMessage}`);
+        console.error(`Error sending message: ${errorMessage}`);
+    };
+
 
     const handleShow = async () => {
         setShowOffcanvas(true);
@@ -173,7 +268,7 @@ const Chat = () => {
         const cursorPos = textarea.selectionStart;
         const newMessage = Message.slice(0, cursorPos) + "\n" + Message.slice(cursorPos);
         setMessage(newMessage);
-        
+
         // Move the cursor after the new line
         setTimeout(() => {
             textarea.selectionStart = cursorPos + 2;
@@ -236,7 +331,7 @@ const Chat = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
+            // console.log(response);
             if (response.data.success) {
                 const conversationData = response.data.message_list;
                 const userName = response.data.user_name;
@@ -248,14 +343,13 @@ const Chat = () => {
                 setActiveConversation({
                     messages: conversationData,
                     name: userName,
-                    image: "https://example.com/default-image.jpg", // You can replace with actual image URL
-                    status: "online", // You can also make this dynamic
+                    image: "https://example.com/default-image.jpg",
+                    status: "online",
                     senderId: senderId,
                     unique_facebook_id: unique_facebook_id,
                     is_follow_up: is_follow_up,
                 });
                 setIsActive(true);
-                // console.log('okkk');
             }
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -283,18 +377,22 @@ const Chat = () => {
 
         // Subscribe to the channel
         const channel = pusher.subscribe('facebook-notification');
-        
+
         // Bind the event to update the conversation when a new message comes in
         channel.bind('facebook.notification', (data) => {
-            console.log('Received data:', data);
+            // alert('okk');
+            console.log('Received :', data);
+            
+            // console.log('fetch user list');
             // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
 
-            if(data.unique_facebook_id !== 'undefined' && data.unique_facebook_id !== '111074608141788') {
+            if (data.unique_facebook_id !== 'undefined' && data.unique_facebook_id !== '111074608141788') {
                 if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
-                    // console.log('if');
+                    // alert('okk');
+                    console.log('if');
                     // console.log('Matching conversation found.');
-                    
+
                     // Add the new message to the conversation
                     setActiveConversation((prevConversation) => {
                         const updatedConversation = {
@@ -304,14 +402,15 @@ const Chat = () => {
                         // console.log('Updated conversation:', updatedConversation);
                         return updatedConversation;
                     });
-                    
+
                     // console.log('Messages after update:', activeConversation?.messages);
-                    
+
                     // Fetch the updated data from the API to get the latest messages
                     // console.log('Fetching data for user ID:', userId);
+                    // console.log('fetch user list');
                     fetchData(userId);
                     fetchUserList();
-                    
+
                     // Optionally show a Toastr notification
                     // console.log(`Showing Toastr notification: New message from ${data.user_name}`);
                     toast.success(`New Message from ${data.user_name}`, `New Message`, {
@@ -323,7 +422,7 @@ const Chat = () => {
                         progress: undefined,
                         theme: "light",
                     });
-                    
+
                 } else {
                     // console.log('else');
                     fetchUserList();
@@ -337,17 +436,17 @@ const Chat = () => {
                         progress: undefined,
                         theme: "light",
                     });
-                    
+
                 }
             }
 
-        });        
+        });
 
         // Clean up when component unmounts
         return () => {
             pusher.unsubscribe('facebook-notification');
         };
-    }, [userId, activeConversation?.unique_facebook_id]); 
+    }, [userId, activeConversation?.unique_facebook_id]);
 
     const handleBack = () => {
         setIsActive(false);
@@ -382,9 +481,7 @@ const Chat = () => {
             textarea.focus();
         }, 0);
     };
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-    };
+
     const handleEditResponse = (templateId, shortValue, detailsValue) => {
 
         setShort(shortValue);
@@ -455,7 +552,7 @@ const Chat = () => {
                 setIsActive(false);
                 fetchUserList();
                 toast.success('Archive successfully!');
-                
+
             }
         } catch (error) {
             console.error('Error:', error);
@@ -463,7 +560,7 @@ const Chat = () => {
     };
     const handleFollowUp = async (uniqueFacebookId, e) => {
         e.preventDefault();
-        try{
+        try {
             const endpoint = `/manage-follow-up/${uniqueFacebookId}`;
             const url = `${apiBaseUrl}${endpoint}`;
             const response = await axios.get(url);
@@ -481,13 +578,10 @@ const Chat = () => {
         setShort('');
         setDetails('');
     };
-    const closeModal = () => {
-        setShowModal(false);
-        setModalContent('');
-    };
     const fetchUserList = async () => {
         try {
             const authUserId = await getAuthUserId();
+            // console.log('Auth User ID:', authUserId);
             const endpoint = `/user-list/${authUserId}`;
             const url = `${apiBaseUrl}${endpoint}`;
             const response = await axios.get(url, {
@@ -495,6 +589,7 @@ const Chat = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
+            // console.log('response:', response);
             const formattedUserList = response.data.message.map((user) => {
                 const messageLogs = Array.isArray(user.message_logs) ? user.message_logs : [];
                 const lastMessage = messageLogs.length > 0 ? messageLogs[messageLogs.length - 1] : null;
@@ -511,6 +606,8 @@ const Chat = () => {
                     lastMessageReadStatus: lastMessage ? lastMessage.is_read : null,
                 };
             });
+            // console.log('User List:', formattedUserList);
+            // console.log(formattedUserList);
             setActiveConversationCount(response.data.count);
             setUserList(formattedUserList);
             setLoading(false);
@@ -524,16 +621,13 @@ const Chat = () => {
 
     useEffect(() => {
         fetchUserList();
-
-        // const interval = setInterval(fetchUserList, 60000);
-        // return () => clearInterval(interval);
     }, [token]);
-    
+
     const handleUserClick = (event, message) => {
         event.preventDefault();
         const uniquefacebookId = message.uniquefacebookId;
         const userId = message.id;
-    
+
         if (!uniquefacebookId) {
             console.error("uniquefacebookId is missing!");
             return;
@@ -545,25 +639,25 @@ const Chat = () => {
         } else {
             setIsActive(true);
         }
-        
+
         fetchData(userId);
         setCurrentUserId(userId);
     };
-    
+
     const [currentUserId, setCurrentUserId] = useState(null);
-    
+
     useEffect(() => {
         let timerTimeout;
         let fetchTimeout;
         const fetchDataInterval = 4000;
         const timerInterval = 1000;
-    
+
         if (isActive && userId !== null) {
             const updateTime = () => {
                 setTimeElapsed(prevTime => prevTime + 1);
                 timerTimeout = setTimeout(updateTime, timerInterval);
             };
-    
+
             // const fetchDataAtInterval = () => {
             //     fetchData(userId);
             //     fetchTimeout = setTimeout(fetchDataAtInterval, fetchDataInterval);
@@ -571,14 +665,14 @@ const Chat = () => {
             updateTime();
             // fetchDataAtInterval();
         }
-    
+
         // Cleanup function
         return () => {
             clearTimeout(timerTimeout);
             clearTimeout(fetchTimeout);
         };
     }, [isActive, userId]);
-    
+
 
     return (
         <section className="chat-section">
@@ -588,7 +682,7 @@ const Chat = () => {
                     {/* <ContentSidebar handleClick={handleClick} userList={userList} /> */}
                     <ContentSidebar
                         listType="user"
-                        listData={userList} 
+                        listData={userList}
                         handleClick={handleUserClick}
                     />
 
@@ -609,8 +703,8 @@ const Chat = () => {
                                         <ImageSlug name={activeConversation.name} />
                                         <div className="conversation-user-name">{activeConversation.name}</div>
                                     </div>
-                                    <div>
-                                        <FaRegClock /> <span style={{ fontWeight: 'bold', color: 'red' }}>Time tracking for this conversation has started... </span> <div style={{ display: 'none' }}> {timeElapsed}</div>
+                                    <div style={{ color: 'green', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <FaRegClock /> <span style={{ fontWeight: 'bold' }}>Time tracking started... </span> <div style={{ display: 'none' }}> {timeElapsed}</div>
                                     </div>
                                 </div>
                             </div>
@@ -625,28 +719,71 @@ const Chat = () => {
 
                                                     <li key={index} className={`conversation-item ${message.isCurrentMessage ? "" : (message.unique_facebook_id !== null ? "me" : "")}`}>
                                                         <ImageSlug
-                                                                name={message && message.unique_facebook_id === null ? 'Edu Tune' : activeConversation?.name}
-                                                            />
+                                                            name={message && message.unique_facebook_id === null ? 'Edu Tune' : activeConversation?.name}
+                                                        />
 
                                                         <div className="conversation-item-content">
                                                             <div className="conversation-item-wrapper">
                                                                 <div className="conversation-item-box">
                                                                     <div className="conversation-item-text">
                                                                         <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-start', alignItems: 'start' }}>
-                                                                            <p style={{ marginBottom: '0', textAlign: 'justify' }}>{message.message_content}</p>
-                                                                            {containsDigits(message.message_content) && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleNumberCopyClick(index, message.message_content)} // Pass the message index
-                                                                                    className="conversation-form-button conversation-form-submit"
-                                                                                    title="Copy to clipboard"
-                                                                                    style={{ marginLeft: '5px' }}
-                                                                                >
-                                                                                    {message.name}
-                                                                                    {/* Display FaCheck if the current message is copied, else FaCopy */}
-                                                                                    {copiedMessageIndex === index ? <FaCheck /> : <FaCopy />}
-                                                                                </button>
+                                                                            {message.unique_facebook_id !== null ? (
+                                                                                message.message_type === 'text' ? (
+                                                                                    <>
+                                                                                        <p style={{ marginBottom: 0, textAlign: 'justify' }}>
+                                                                                            {message.message_content || 'No content available'}
+                                                                                        </p>
+                                                                                        {containsDigits(message.message_content) && (
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => handleNumberCopyClick(index, message.message_content)}
+                                                                                                className="conversation-form-button conversation-form-submit"
+                                                                                                title="Copy to clipboard"
+                                                                                                style={{ marginLeft: '5px' }}
+                                                                                            >
+                                                                                                {message.name}
+                                                                                                {copiedMessageIndex === index ? <FaCheck /> : <FaCopy />}
+                                                                                            </button>
+                                                                                        )}
+                                                                                    </>
+                                                                                ) : message.message_type === 'image' ? (
+                                                                                    <img
+                                                                                        src={message.message_content}
+                                                                                        alt="Message Image"
+                                                                                        style={{ maxWidth: '100%', height: 'auto', marginBottom: '10px' }}
+                                                                                    />
+                                                                                ) : message.message_type === 'audio' ? (
+                                                                                    <audio controls style={{ marginBottom: '10px' }}>
+                                                                                        <source src={message.message_content} type="audio/mpeg" />
+                                                                                        Your browser does not support the audio element.
+                                                                                    </audio>
+                                                                                ) : message.message_type === 'video' ? (
+                                                                                    <video controls style={{ maxWidth: '100%', marginBottom: '10px' }}>
+                                                                                        <source src={message.message_content} type="video/mp4" />
+                                                                                        Your browser does not support the video tag.
+                                                                                    </video>
+                                                                                ) : message.message_type === 'file' ? (
+                                                                                    <a
+                                                                                        href={message.message_content}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        style={{ color: 'white', textDecoration: 'none' }}
+                                                                                    >
+                                                                                        Download File
+                                                                                    </a>
+                                                                                ) : (
+                                                                                    <p style={{ marginBottom: 0, textAlign: 'justify', color: 'gray' }}>
+                                                                                        Unsupported message type.
+                                                                                    </p>
+                                                                                )
+                                                                            ) : (
+                                                                                <p style={{ marginBottom: 0, textAlign: 'justify' }}>
+                                                                                    {message.message_content || 'No content available'}
+                                                                                </p>
                                                                             )}
+
+
+
                                                                         </div>
 
                                                                         <div className="conversation-item-time">
@@ -677,12 +814,12 @@ const Chat = () => {
                                 <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
                                     <div className="d-flex justify-content-between align-items-center">
                                         <div style={{ display: "flex", justifyContent: 'space-between', gap: '24px' }}>
-                                        <FaLevelDownAlt 
-                                            className={styles.icon} 
-                                            onClick={handleNewLine} 
-                                            data-title="Add New Line" 
-                                            title="Add New Line"
-                                        />
+                                            <FaLevelDownAlt
+                                                className={styles.icon}
+                                                onClick={handleNewLine}
+                                                data-title="Add New Line"
+                                                title="Add New Line"
+                                            />
                                             <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                                                 <input
                                                     type="checkbox"
@@ -699,7 +836,7 @@ const Chat = () => {
                                                 />
                                                 <span style={{ marginLeft: "8px", fontSize: "14px", color: "#333" }}>Archive without message</span>
                                             </label>
-                                            
+
                                             <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                                                 {activeConversation.is_follow_up === 0 && (
                                                     <input
@@ -859,7 +996,24 @@ const Chat = () => {
                                             </Offcanvas.Body>
                                         </Offcanvas>
                                     </div>
-                                    {file && <p>{file.name}</p>}
+                                    {file && (
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                marginTop: "10px",
+                                            }}
+                                        >
+                                            <p style={{ margin: '0 10px' }}>{file.name}</p>
+                                            <FaTimes
+                                                style={{
+                                                    cursor: "pointer",
+                                                    color: "red",
+                                                }}
+                                                onClick={handleFileDelete}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="conversation-form">
@@ -878,11 +1032,13 @@ const Chat = () => {
                                             placeholder="Type here.."
                                             value={Message}
                                             onChange={(e) => setMessage(e.target.value)}
+                                            disabled={isMessageDisabled}
                                         />
                                     </div>
                                 </div>
                                 <div className='col-lg-12' style={{ padding: '8px 16px', backgroundColor: '#fff', }}>
-                                    <div className='selectField' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: '10px', }}>
+                                    <div className='selectField' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', }}>
+                                        <FileUploadModal userId={userId} facebookId={activeConversation.unique_facebook_id} fileUploadSuccess={updateMessagesWithFile} setIsActive={setIsActive} />
                                         <SelectField
                                             isMulti={false}
                                             options={sentimentOptions}
@@ -898,12 +1054,12 @@ const Chat = () => {
                                                 width: "80px",
                                                 height: "38px",
                                                 cursor: "pointer",
-                                                accentColor: "#662d91",
+                                                accentColor: "#00a884",
                                                 border: "2px solid rgb(204, 204, 204)",
                                                 borderRadius: "4px",
                                             }}
                                             ref={checkboxRef}
-                                            defaultChecked={true} 
+                                            defaultChecked={true}
                                         />
                                         <button
                                             type="button"
@@ -915,29 +1071,7 @@ const Chat = () => {
                                     </div>
                                 </div>
                             </div>
-                            {showModal && (
-                                <div className="modal show d-block" style={{ background: 'rgba(0, 0, 0, 0.5)' }}>
-                                    <div className="modal-dialog modal-lg modal-dialog-centered">
-                                        <div className="modal-content">
-                                            <div className="modal-header">
-                                                <h5 className="modal-title">{modalContent}</h5>
-                                                <button type="button" className="btn-close" onClick={closeModal}></button>
-                                            </div>
-                                            <div className="modal-body">
-                                                <p>Here you can {modalContent.toLowerCase()}.</p>
-                                            </div>
-                                            <div className="modal-footer">
-                                                <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                                                    Close
-                                                </button>
-                                                <button type="button" className="btn btn-primary">
-                                                    Save Changes
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 </div>

@@ -47,12 +47,12 @@ const ChatSidebar = () => {
             {(count > 0 ) && <span className="red-dot"></span>}
           </Link>
         </li>
-        {/* <li className={pathname === "/comment" ? "active" : ""}>
+        <li className={pathname === "/comment" ? "active" : ""}>
           <Link href="/comment" data-title="Comments" className="sidebar-link">
             <i className="ri-chat-smile-3-fill"></i>
             {( commentCount > 0) && <span className="red-dot"></span>}
           </Link>
-        </li> */}
+        </li>
         <li className={pathname === '/follow-up' ? 'active' : ''}>
           <Link href="/follow-up" data-title="FollowUp">
             <i className="ri-chat-follow-up-line"></i>
