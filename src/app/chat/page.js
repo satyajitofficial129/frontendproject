@@ -387,7 +387,7 @@ const Chat = () => {
             // console.log('Comparing unique_facebook_id:', data.unique_facebook_id, 'with', activeConversation?.unique_facebook_id);
             // Check if the unique Facebook ID matches
 
-            if (data.unique_facebook_id !== 'undefined' && data.unique_facebook_id !== '111074608141788') {
+            if (data.unique_facebook_id != 'undefined' && data.unique_facebook_id != '111074608141788') {
                 if (data.unique_facebook_id === activeConversation?.unique_facebook_id) {
                     // alert('okk');
                     console.log('if');
